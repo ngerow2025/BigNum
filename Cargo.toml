@@ -1,0 +1,25 @@
+[package]
+name = "big-num"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+lazy_static = "1.4.0"
+rand = "0.8.5"
+lalrpop-util = { version = "0.20.0", features = ["lexer", "unicode"] }
+
+[lib]
+name = "big_num"
+path = "src/lib.rs"
+
+[[bin]]
+name = "big_calculator"
+path = "src/main.rs"
+
+[build-dependencies] 
+lalrpop = {version = "0.20.0", features = ["unicode"]}
+
+
+

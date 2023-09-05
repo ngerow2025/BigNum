@@ -1,0 +1,34 @@
+use big_num::{codec, BigNum};
+use crate::AST::AstNode;
+
+grammar;
+
+pub Expr: AstNode = {
+    #[precedence(level="1")]
+    <n:Literal> => AstNode::Literal(n),
+
+    #[precedence(level="4")] 
+    #[assoc(side="left")]
+    <l:Expr> "+" <r:Expr> => AstNode::Add(Box::new(l), Box::new(r)),
+
+    #[precedence(level="4")] 
+    #[assoc(side="left")]
+    <l:Expr> "-" <r:Expr> => AstNode::Sub(Box::new(l), Box::new(r)),
+
+    #[precedence(level="3")] 
+    #[assoc(side="left")]
+    <l:Expr> "*" <r:Expr> => AstNode::Mul(Box::new(l), Box::new(r)),
+
+    #[precedence(level="3")] 
+    #[assoc(side="left")]
+    <l:Expr> "/" <r:Expr> => AstNode::Div(Box::new(l), Box::new(r)),
+
+    #[precedence(level="2")] 
+    #[assoc(side="right")]
+    <l:Expr> "^" <r:Expr> => AstNode::Pow(Box::new(l), Box::new(r)),
+
+    #[precedence(level="1")]
+    "(" <e:Expr> ")" => e,
+}
+
+Literal: BigNum = <s:r"[+-]?[0123456789]+(\.[0123456789]*)?"> => codec::parse(s, codec::Base::Decimal);
