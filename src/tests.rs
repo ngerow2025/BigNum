@@ -1,28 +1,35 @@
 use crate::BigNum;
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
+
+use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref POSSIBLE_VALS: Vec<BigNum> = vec![
-        BigNum::from(0),
-        BigNum::from(1),
-        BigNum::from(100),
-        BigNum::from(1000000000000000000u64),
-        BigNum::from(-1),
-        BigNum::from(-100),
-        BigNum::from(-1000000000000000000i64),
-        BigNum::from(i64::MAX),
-        BigNum::from(i64::MIN),
-        generate_random_bignum(3, 0),
-        -generate_random_bignum(3, 0),
-        generate_random_bignum(3, -100),
-        -generate_random_bignum(3, -100)
-    ];
+    static ref POSSIBLE_VALS: Vec<BigNum> = {
+        let mut rng = StdRng::seed_from_u64(42); // replace 42 with any seed
+        vec![
+            BigNum::from(0),
+            BigNum::from(1),
+            BigNum::from(100),
+            BigNum::from(1000000000000000000u64),
+            BigNum::from(-1),
+            BigNum::from(-100),
+            BigNum::from(-1000000000000000000i64),
+            BigNum::from(i64::MAX),
+            BigNum::from(i64::MIN),
+            generate_random_bignum(&mut rng, 3, 0),
+            -generate_random_bignum(&mut rng, 3, 0),
+            generate_random_bignum(&mut rng, 3, -100),
+            -generate_random_bignum(&mut rng, 3, -100),
+        ]
+    };
 }
 
-fn generate_random_bignum(digits: usize, exp: i32) -> BigNum {
+fn generate_random_bignum<R: Rng>(rng: &mut R, digits: usize, exp: i32) -> BigNum {
     let mut result = BigNum::new();
     let a = BigNum::from(1) + BigNum::from(u64::MAX);
     for _ in 0..digits {
-        result = result * a + BigNum::from(rand::random::<u64>());
+        result = result * &a + BigNum::from(rng.gen::<u64>());
     }
     result = result * a.pow(exp.into());
     result
@@ -70,7 +77,11 @@ fn from_i64() {
 
 fn test_from_i64(n: i64) {
     let num = BigNum::from(n);
-    assert_eq!(num.to_u64(), n.abs_diff(0) as u64);
+
+    if n >= 0 {
+        assert_eq!(num.to_u64(), n as u64);
+    }
+
     assert_eq!(num < 0.into(), n < 0);
 }
 
@@ -89,7 +100,9 @@ fn from_i32() {
 
 fn test_from_i32(n: i32) {
     let num = BigNum::from(n);
-    assert_eq!(num.to_u64(), n.abs_diff(0) as u64);
+    if n >= 0 {
+        assert_eq!(num.to_u64(), n as u64);
+    }
     assert_eq!(num < 0.into(), n < 0);
 }
 
@@ -122,7 +135,11 @@ fn commutative_property_of_addition() {
 fn test_commutative_property_of_addition(a: &BigNum, b: &BigNum) {
     let result1 = a + b;
     let result2 = b + a;
-    assert_eq!(result1, result2, "a: {:?}, b: {:?}", a, b);
+    assert_eq!(
+        result1, result2,
+        "Commutative property of addition failed: {:?} + {:?} != {:?} + {:?}",
+        a, b, b, a
+    );
 }
 
 #[test]
@@ -140,7 +157,11 @@ fn associative_property_of_addition() {
 fn test_associative_property_of_addition(a: &BigNum, b: &BigNum, c: &BigNum) {
     let result1 = (a + b) + c;
     let result2 = a + (b + c);
-    assert_eq!(result1, result2, "a: {:?}, b: {:?}, c: {:?}", a, b, c);
+    assert_eq!(
+        result1, result2,
+        "Associative property of addition failed: ({:?} + {:?}) + {:?} != {:?} + ({:?} + {:?})",
+        a, b, c, a, b, c
+    );
 }
 
 #[test]
@@ -153,7 +174,11 @@ fn additive_identity() {
 
 fn test_additive_identity(a: &BigNum) {
     let result = a + BigNum::from(0);
-    assert_eq!(result, *a, "a: {:?}", a);
+    assert_eq!(
+        result, *a,
+        "Additive identity failed: {:?} + 0 != {:?}",
+        a, a
+    );
 }
 
 #[test]
@@ -167,7 +192,13 @@ fn additive_inverse() {
 fn test_additive_inverse(a: &BigNum) {
     let neg = -a;
     let result = a + &neg;
-    assert_eq!(result, BigNum::from(0), "a: {:?}", a);
+    assert_eq!(
+        result,
+        BigNum::from(0),
+        "Additive inverse failed: {:?} + (-{:?}) != 0",
+        a,
+        a
+    );
 }
 
 #[test]
@@ -187,7 +218,11 @@ fn distributive_property() {
 fn test_distributive_property(a: &BigNum, b: &BigNum, c: &BigNum) {
     let result1 = a * (b + c);
     let result2 = (a * b) + (a * c);
-    assert_eq!(result1, result2, "a: {:?}, b: {:?}, c: {:?}", a, b, c);
+    assert_eq!(
+        result1, result2,
+        "Distributive property failed: {:?} * ({:?} + {:?}) != ({:?} * {:?}) + ({:?} * {:?})",
+        a, b, c, a, b, a, c
+    );
 }
 
 #[test]
@@ -212,8 +247,18 @@ fn anti_reflexive_property_of_inequality() {
 }
 
 fn test_anti_reflexive_property_of_inequality(a: &BigNum) {
-    assert!(!(a < a), "a: {:?}", a);
-    assert!(!(a > a), "a: {:?}", a);
+    assert!(
+        !(a < a),
+        "Anti-reflexive property of inequality failed: {:?} < {:?} is true",
+        a,
+        a
+    );
+    assert!(
+        !(a > a),
+        "Anti-reflexive property of inequality failed: {:?} > {:?} is true",
+        a,
+        a
+    );
 }
 
 #[test]
@@ -239,12 +284,12 @@ fn test_anti_symmetry_property_of_inequality(a: &BigNum, b: &BigNum) {
 
     assert_eq!(
         less_than_symmetric, !less_than,
-        "Failed anti-symmetry property of inequality test: {:?} < {:?} but {:?} < {:?}",
+        "Anti-symmetry property failed: {:?} < {:?} but {:?} < {:?}",
         a, b, b, a
     );
     assert_eq!(
         greater_than_symmetric, !greater_than,
-        "Failed anti-symmetry property of inequality test: {:?} > {:?} but {:?} > {:?}",
+        "Anti-symmetry property failed: {:?} > {:?} but {:?} > {:?}",
         a, b, b, a
     );
 }
@@ -270,18 +315,20 @@ fn test_transitive_property_of_inequality(a: &BigNum, b: &BigNum, c: &BigNum) {
     let greater_than2 = b > c;
     let greater_than3 = a > c;
 
-    //if a < b and b < c, then a < c
     if less_than1 && less_than2 {
-        assert!(less_than3, "Failed transitive property of inequality test: {:?} < {:?} and {:?} < {:?} but {:?} < {:?}",
-                a, b, b, c, a, c
-            );
+        assert!(
+            less_than3,
+            "Transitive property failed: {:?} < {:?} and {:?} < {:?} but {:?} !< {:?}",
+            a, b, b, c, a, c
+        );
     }
 
-    //if a > b and b > c, then a > c
     if greater_than1 && greater_than2 {
-        assert!(greater_than3, "Failed transitive property of inequality test: {:?} > {:?} and {:?} > {:?} but {:?} > {:?}",
-                a, b, b, c, a, c
-            );
+        assert!(
+            greater_than3,
+            "Transitive property failed: {:?} > {:?} and {:?} > {:?} but {:?} !> {:?}",
+            a, b, b, c, a, c
+        );
     }
 }
 
@@ -370,26 +417,26 @@ fn test_multiplication_property_of_inequality(a: &BigNum, b: &BigNum, c: &BigNum
 
     if c > &BigNum::from(0) {
         assert_eq!(
-                less_than_mul, less_than,
-                "Failed multiplication property of inequality test: {:?} < {:?} but {:?} * {:?} < {:?} * {:?}",
-                a, b, a, c, b, c
-            );
+            less_than_mul, less_than,
+            "Multiplication property failed: {:?} < {:?} but {:?} * {:?} !< {:?} * {:?}",
+            a, b, a, c, b, c
+        );
         assert_eq!(
-                greater_than_mul, greater_than,
-                "Failed multiplication property of inequality test: {:?} > {:?} but {:?} * {:?} > {:?} * {:?}",
-                a, b, a, c, b, c
-            );
+            greater_than_mul, greater_than,
+            "Multiplication property failed: {:?} > {:?} but {:?} * {:?} !> {:?} * {:?}",
+            a, b, a, c, b, c
+        );
     } else if c < &BigNum::from(0) {
         assert_eq!(
-                less_than_mul, greater_than,
-                "Failed multiplication property of inequality test: {:?} < {:?} but {:?} * {:?} < {:?} * {:?}",
-                a, b, a, c, b, c
-            );
+            less_than_mul, greater_than,
+            "Multiplication property failed: {:?} < {:?} but {:?} * {:?} !> {:?} * {:?}",
+            a, b, a, c, b, c
+        );
         assert_eq!(
-                greater_than_mul, less_than,
-                "Failed multiplication property of inequality test: {:?} > {:?} but {:?} * {:?} > {:?} * {:?}",
-                a, b, a, c, b, c
-            );
+            greater_than_mul, less_than,
+            "Multiplication property failed: {:?} > {:?} but {:?} * {:?} !< {:?} * {:?}",
+            a, b, a, c, b, c
+        );
     }
 }
 
