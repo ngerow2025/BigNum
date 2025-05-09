@@ -1,5 +1,6 @@
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
+
 #[derive(Debug, Clone, Default)]
 pub struct BigNum {
     parts: Vec<u64>,
@@ -14,6 +15,34 @@ impl BigNum {
             exp: 0,
             neg: false,
         }
+    }
+    pub fn truncate(self, n: usize) -> BigNum {
+        let mut result = self;
+        while result.parts.len() > n {
+            result.parts.pop();
+        }
+        result
+    }
+    //print out each part in binary including a space between each part or a decimal point where appropriate
+    pub fn to_string_binary(&self) -> String {
+        let mut result = String::new();
+        for i in (0..self.parts.len()).rev() {
+            if i == self.exp as usize {
+                result.push('.');
+            }
+            result.push_str(&format!("{:064b}", self.parts[i]));
+            if i != 0 {
+                result.push(' ');
+            }
+        }
+        if self.neg {
+            result.insert(0, '-');
+        }
+        result
+    }
+
+    pub fn get_precision(&self) -> usize {
+        return self.parts.len();
     }
 }
 
@@ -86,6 +115,27 @@ impl BigNum {
         }
         res
     }
+
+    pub fn get_integer_part_ref(&self) -> BigNum {
+        if self.exp >= 0 {
+            return self.clone();
+        }
+        if self.parts.len() < -self.exp as usize {
+            return self.clone();
+        }
+
+        let mut res = self.clone();
+        while res.exp < 0 {
+            if res.parts.len() == 0 {
+                return BigNum::new();
+            }
+            res.parts.remove(0);
+            res.exp += 1;
+        }
+        res.compact();
+        res
+    }
+
     //1234 * 10^-2 = 12.34
     //
     pub fn get_decimal_part(self) -> BigNum {
@@ -477,12 +527,11 @@ fn widening_mul(a: u64, b: u64) -> (u64, u64) {
     (lower, upper)
 }
 
-const PRECISION: usize = 100;
-
 impl Div for BigNum {
     type Output = BigNum;
     fn div(self, rhs: Self) -> Self::Output {
         let mut result = BigNum::new();
+        let default_precision = self.parts.len() + rhs.parts.len();
         let mut a = self;
         let mut b = rhs;
         align(&mut a, &mut b);
@@ -492,7 +541,7 @@ impl Div for BigNum {
 
         let mut offset = 0;
 
-        for _ in 0..PRECISION {
+        for _ in 0..default_precision {
             if b > a {
                 a.parts.insert(0, 0);
                 offset += 1;
@@ -501,19 +550,23 @@ impl Div for BigNum {
             let mut count = 0;
             let mut sub_count = 0;
             let exponent = BigNum::from(u64::MAX) + BigNum::from(1);
+            let mut did_iterate = false;
             while &tmp * &exponent < a {
-                tmp = tmp * &exponent;
+                did_iterate = true;
+                tmp.exp += 1;
                 count += 1;
             }
-            //TODO: may not even do 1 iteration of this loop
-            tmp.exp -= 1;
-            count -= 1;
-            
+
+            if did_iterate {
+                tmp.exp -= 1;
+                count -= 1;
+            }
+
             while &tmp * BigNum::from(2) <= a {
                 tmp = tmp * BigNum::from(2);
                 sub_count += 1;
             }
-            
+
             //count is the multible of b that is closest to a
             //repeatedly subtract tmp from a until a is less than tmp and each time add a bignum with exp = count to result
             while a >= tmp {
@@ -524,14 +577,29 @@ impl Div for BigNum {
                     tmp_result = tmp_result * BigNum::from(2);
                 }
                 result = result + tmp_result;
-            }
-            //we have exactly divided a by b
-            if a == BigNum::from(0) {
-                break;
+                //check if needed precision has been reached
+                result.compact();
+                if result.parts.len() > default_precision {
+                    //round off the last part and remove it
+                    //if the most significant bit is 1, add 1 to the last part
+                    //the representation is least significant u64 first
+                    let least_significant_part = result.parts.first().unwrap();
+                    let rounding_bit = least_significant_part & 0x8000000000000000;
+                    //remove the last part
+                    result.parts.remove(0);
+                    if rounding_bit != 0 {
+                        break;
+                    }
+                }
+                //we have exactly divided a by b
+                if a == BigNum::from(0) {
+                    break;
+                }
             }
         }
         result.neg = a.neg ^ b.neg;
         result.compact();
+
         result
     }
 }
@@ -660,7 +728,7 @@ impl BigNum {
         x
     }
 
-    pub fn to_u64(self) -> u64 {
+    pub fn to_u64(&self) -> u64 {
         let mut a = self.clone();
         a.compact();
         if a.parts.len() == 0 {

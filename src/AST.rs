@@ -8,4 +8,5 @@ pub enum AstNode {
     Mul(Box<AstNode>, Box<AstNode>),
     Div(Box<AstNode>, Box<AstNode>),
     Pow(Box<AstNode>, Box<AstNode>),
+    Mod(Box<AstNode>, Box<AstNode>),
 }

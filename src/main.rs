@@ -14,8 +14,6 @@ fn input(prompt: &str) -> String {
     input.trim().to_string()
 }
 
-
-
 fn convert() {
     //ask for the number to convert
     let input_string = input("Enter a number: ");
@@ -35,10 +33,8 @@ fn convert() {
     println!("result: {}", output);
 }
 
-
 use lalrpop_util::lalrpop_mod;
 lalrpop_mod!(pub calculator);
-
 
 fn parse(input: &str) -> AstNode {
     let ast = calculator::ExprParser::new().parse(input).unwrap();
@@ -53,6 +49,7 @@ fn eval(input: &AstNode) -> BigNum {
         AstNode::Mul(x, y) => eval(x) * eval(y),
         AstNode::Div(x, y) => eval(x) / eval(y),
         AstNode::Pow(x, y) => eval(x).pow(eval(y)),
+        AstNode::Mod(x, y) => eval(x) % eval(y),
     }
 }
 
@@ -63,7 +60,7 @@ fn evaluate() {
     println!("result: {}", res);
 }
 
-fn main(){
+fn main() {
     println!("Welcome to the BigNum calculator!");
     println!("options:");
     println!("(1) Convert a number from one base to another");
@@ -78,7 +75,15 @@ fn main(){
         }
     }
 
+    // let mut output: BigNum;
+    // {
+    //     let _div = ScopeTimer::new("div", TimeFormat::Milliseconds, None, false);
 
-    
-    
+    //     output = BigNum::from(1) / BigNum::from(3);
+    // }
+
+    // {
+    //     let _print = ScopeTimer::new("print", TimeFormat::Milliseconds, None, false);
+    //     println!("{}", output);
+    // }
 }

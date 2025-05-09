@@ -34,6 +34,7 @@ dependencies = [
  "lalrpop-util",
  "lazy_static",
  "rand",
+ "scope_timer",
 ]
 
 [[package]]
@@ -480,6 +481,15 @@ name = "rustversion"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ffc183a10b4478d04cbbbfc96d0873219d962dd5accaff2ffbd4ceb7df837f4"
+
+[[package]]
+name = "scope_timer"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb4d12f99a3632f82d7b109d2b7b4235a293edcf4b60a828d141e16d4adff9f9"
+dependencies = [
+ "log",
+]
 
 [[package]]
 name = "scopeguard"

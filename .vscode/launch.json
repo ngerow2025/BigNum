@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
         {
             "name": "(gdb) Attach",
             "type": "cppdbg",
@@ -23,6 +24,15 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug Rust Program",
+            "program": "/home/ngero/cargo_global/debug/big_calculator",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"],
         }
 
     ]

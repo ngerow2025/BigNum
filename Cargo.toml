@@ -9,6 +9,7 @@ edition = "2021"
 lazy_static = "1.4.0"
 rand = "0.8.5"
 lalrpop-util = { version = "0.20.0", features = ["lexer", "unicode"] }
+scope_timer = "0.2.3"
 
 [lib]
 name = "big_num"
@@ -20,6 +21,4 @@ path = "src/main.rs"
 
 [build-dependencies] 
 lalrpop = {version = "0.20.0", features = ["unicode"]}
-
-
 

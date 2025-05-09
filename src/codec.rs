@@ -1,5 +1,9 @@
+use std::{
+    error::Error,
+    fmt::{self, Display},
+    str::FromStr,
+};
 
-use std::{str::FromStr, fmt::{self, Display}, error::Error};
 
 use crate::bigNum::BigNum;
 
@@ -60,9 +64,9 @@ pub fn parse<T: AsRef<str>>(_input: T, base: Base) -> BigNum {
     let decimal = input.find('.');
     if decimal.is_some() {
         //get the part before the decimal point
-        let mut before = input[..decimal.unwrap()].to_string();
+        let before = input[..decimal.unwrap()].to_string();
         //get the part after the decimal point
-        let mut after = input[decimal.unwrap() + 1..].to_string();
+        let after = input[decimal.unwrap() + 1..].to_string();
         //convert the part before the decimal point
         let before_val = parse(before, base);
         //convert the part after the decimal point
@@ -89,28 +93,59 @@ pub fn parse<T: AsRef<str>>(_input: T, base: Base) -> BigNum {
 pub fn encode(mut input: BigNum, base: Base) -> String {
     let mut result = String::new();
     let big_base = BigNum::from(base as u64);
-    let mut place = big_base.clone();
-    while place <= input {
-        place = place * &big_base;
-    }
-    place = place / &big_base;
+    let zero = BigNum::from(0);
 
-    if input < BigNum::from(0) {
+    input.compact();
+
+    let target_digits =
+        (input.get_precision() as f64 * 64f64 / ((base as u64 as f64).log2())).floor() as usize;
+
+    // Handle negative numbers
+    if input < zero {
         result.push('-');
         input = -input;
     }
-    let mut decimal_point = false;
-    while input > BigNum::from(0) {
-        let leftover = &input % &place;
-        let digit = (&input - &leftover) / &place;
-        result.push(CHARS.chars().nth(digit.to_u64() as usize).unwrap());
-        input = leftover;
-        place = place / &big_base;
-        if !decimal_point && place < BigNum::from(1) {
-            result.push('.');
-            decimal_point = true;
+
+    // Special case for zero
+    if input == zero {
+        result.push(CHARS.chars().nth(0).unwrap());
+        return result;
+    }
+
+    // Find highest integer place using only multiplication
+    let mut integer_places = vec![BigNum::from(1)];
+    while integer_places.last().unwrap() * &big_base <= input {
+        let next_place = integer_places.last().unwrap() * &big_base;
+        integer_places.push(next_place);
+    }
+
+    // Process integer part using precomputed places
+    let mut remainder = input.clone();
+    for place in integer_places.iter().rev() {
+        let mut digit: usize = 0;
+        // Find digit through repeated subtraction (avoids division)
+        while remainder >= *place {
+            remainder = remainder - place;
+            digit = digit + 1;
+        }
+        result.push(CHARS.chars().nth(digit).unwrap());
+    }
+
+    // Process fractional part using multiplication
+    if remainder > zero {
+        result.push('.');
+        let mut fractional = remainder;
+        let mut precision = 0;
+
+        while fractional > zero && precision < target_digits {
+            fractional = fractional * &big_base;
+            let digit = (&fractional).get_integer_part_ref();
+            fractional = fractional - &digit;
+            result.push(CHARS.chars().nth(digit.to_u64() as usize).unwrap());
+            precision += 1;
         }
     }
+
     result
 }
 
