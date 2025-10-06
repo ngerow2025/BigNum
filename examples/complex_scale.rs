@@ -1,4 +1,4 @@
-use big_num::{BigNum, encode, Base};
+use big_num::{encode, Base, BigNum};
 
 fn main() {
     // Build a small fractional value

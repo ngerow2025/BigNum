@@ -4,7 +4,6 @@ use std::{
     str::FromStr,
 };
 
-
 use crate::big_num::BigNum;
 
 const CHARS: &str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/";

@@ -1,4 +1,4 @@
-use big_num::{parse, encode, Base};
+use big_num::{encode, parse, Base};
 
 fn main() {
     let n = parse("255.5", Base::Decimal);
