@@ -5,9 +5,9 @@ use std::{
 };
 
 
-use crate::bigNum::BigNum;
+use crate::big_num::BigNum;
 
-const CHARS: &'static str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/";
+const CHARS: &str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Copy)]
 pub enum Base {
@@ -61,12 +61,11 @@ pub fn parse<T: AsRef<str>>(_input: T, base: Base) -> BigNum {
         input.remove(0);
     }
     //check for decimal point
-    let decimal = input.find('.');
-    if decimal.is_some() {
+    if let Some(decimal) = input.find('.') {
         //get the part before the decimal point
-        let before = input[..decimal.unwrap()].to_string();
+        let before = input[..decimal].to_string();
         //get the part after the decimal point
-        let after = input[decimal.unwrap() + 1..].to_string();
+        let after = input[decimal + 1..].to_string();
         //convert the part before the decimal point
         let before_val = parse(before, base);
         //convert the part after the decimal point
@@ -108,7 +107,7 @@ pub fn encode(mut input: BigNum, base: Base) -> String {
 
     // Special case for zero
     if input == zero {
-        result.push(CHARS.chars().nth(0).unwrap());
+        result.push(CHARS.chars().next().unwrap());
         return result;
     }
 
@@ -126,7 +125,7 @@ pub fn encode(mut input: BigNum, base: Base) -> String {
         // Find digit through repeated subtraction (avoids division)
         while remainder >= *place {
             remainder = remainder - place;
-            digit = digit + 1;
+            digit += 1;
         }
         result.push(CHARS.chars().nth(digit).unwrap());
     }
@@ -139,7 +138,7 @@ pub fn encode(mut input: BigNum, base: Base) -> String {
 
         while fractional > zero && precision < target_digits {
             fractional = fractional * &big_base;
-            let digit = (&fractional).get_integer_part_ref();
+            let digit = fractional.get_integer_part_ref();
             fractional = fractional - &digit;
             result.push(CHARS.chars().nth(digit.to_u64() as usize).unwrap());
             precision += 1;

@@ -2,9 +2,9 @@ use std::io::Write;
 
 use big_num::{codec, BigNum};
 
-mod AST;
+mod ast;
 
-use AST::AstNode;
+use ast::AstNode;
 
 fn input(prompt: &str) -> String {
     print!("{}", prompt);

@@ -1,5 +1,5 @@
-use big_num::{codec, BigNum};
-use crate::AST::AstNode;
+use big_num::{codec, BigNum}; 
+use crate::ast::AstNode;
 
 grammar;
 

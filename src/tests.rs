@@ -25,6 +25,7 @@ lazy_static! {
     };
 }
 
+#[expect(dead_code)] // this warning is from being used in the lazy_static block only
 fn generate_random_bignum<R: Rng>(rng: &mut R, digits: usize, exp: i32) -> BigNum {
     let mut result = BigNum::new();
     let a = BigNum::from(1) + BigNum::from(u64::MAX);
@@ -57,6 +58,7 @@ fn from_u64() {
     test_from_u64(u64::MIN);
 }
 
+#[cfg(test)]
 fn test_from_u64(n: u64) {
     let num = BigNum::from(n);
     assert_eq!(num.to_u64(), n);
@@ -75,6 +77,7 @@ fn from_i64() {
     test_from_i64(i64::MIN);
 }
 
+#[cfg(test)]
 fn test_from_i64(n: i64) {
     let num = BigNum::from(n);
 
@@ -98,6 +101,7 @@ fn from_i32() {
     test_from_i32(i32::MIN);
 }
 
+#[cfg(test)]
 fn test_from_i32(n: i32) {
     let num = BigNum::from(n);
     if n >= 0 {
@@ -116,6 +120,7 @@ fn from_u32() {
     test_from_u32(u32::MIN);
 }
 
+#[cfg(test)]
 fn test_from_u32(n: u32) {
     let num = BigNum::from(n);
     assert_eq!(num.to_u64(), n as u64);
@@ -132,6 +137,7 @@ fn commutative_property_of_addition() {
     }
 }
 
+#[cfg(test)]
 fn test_commutative_property_of_addition(a: &BigNum, b: &BigNum) {
     let result1 = a + b;
     let result2 = b + a;
@@ -154,6 +160,7 @@ fn associative_property_of_addition() {
     }
 }
 
+#[cfg(test)]
 fn test_associative_property_of_addition(a: &BigNum, b: &BigNum, c: &BigNum) {
     let result1 = (a + b) + c;
     let result2 = a + (b + c);
@@ -172,6 +179,7 @@ fn additive_identity() {
     }
 }
 
+#[cfg(test)]
 fn test_additive_identity(a: &BigNum) {
     let result = a + BigNum::from(0);
     assert_eq!(
@@ -189,6 +197,7 @@ fn additive_inverse() {
     }
 }
 
+#[cfg(test)]
 fn test_additive_inverse(a: &BigNum) {
     let neg = -a;
     let result = a + &neg;
@@ -215,6 +224,7 @@ fn distributive_property() {
     }
 }
 
+#[cfg(test)]
 fn test_distributive_property(a: &BigNum, b: &BigNum, c: &BigNum) {
     let result1 = a * (b + c);
     let result2 = (a * b) + (a * c);
@@ -233,6 +243,7 @@ fn equality() {
     }
 }
 
+#[cfg(test)]
 fn test_equality(a: &BigNum) {
     assert_eq!(*a, *a, "a: {:?}", a);
 }
@@ -246,6 +257,7 @@ fn anti_reflexive_property_of_inequality() {
     }
 }
 
+#[cfg(test)]
 fn test_anti_reflexive_property_of_inequality(a: &BigNum) {
     assert!(
         !(a < a),
@@ -272,6 +284,7 @@ fn anti_symmetry_property_of_inequality() {
     }
 }
 
+#[cfg(test)]
 fn test_anti_symmetry_property_of_inequality(a: &BigNum, b: &BigNum) {
     if a == b {
         return;
@@ -307,6 +320,7 @@ fn transitive_property_of_inequality() {
     }
 }
 
+#[cfg(test)]
 fn test_transitive_property_of_inequality(a: &BigNum, b: &BigNum, c: &BigNum) {
     let less_than1 = a < b;
     let less_than2 = b < c;
@@ -345,6 +359,7 @@ fn addition_property_of_inequality() {
     }
 }
 
+#[cfg(test)]
 fn test_addition_property_of_inequality(a: &BigNum, b: &BigNum, c: &BigNum) {
     let less_than = a < b;
     let greater_than = a > b;
@@ -376,6 +391,7 @@ fn subtraction_property_of_inequality() {
     }
 }
 
+#[cfg(test)]
 fn test_subtraction_property_of_inequality(a: &BigNum, b: &BigNum, c: &BigNum) {
     let less_than = a < b;
     let greater_than = a > b;
@@ -409,6 +425,7 @@ fn multiplication_property_of_inequality() {
     }
 }
 
+#[cfg(test)]
 fn test_multiplication_property_of_inequality(a: &BigNum, b: &BigNum, c: &BigNum) {
     let less_than = a < b;
     let greater_than = a > b;
@@ -452,6 +469,7 @@ fn inequality_sanity_test() {
     }
 }
 
+#[cfg(test)]
 fn test_inequality_sanity_test(a: &BigNum, b: &BigNum) {
     let less_than = a < &(a + b);
     let greater_than = a > &(a + b);
